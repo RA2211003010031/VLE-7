@@ -9,7 +9,7 @@ pipeline {
     stages {
         stage('Checkout Code') {
             steps {
-                git 'https://github.com/WiiWake3101/spring-petclinic'
+                git branch: 'main', url: 'https://github.com/WiiWake3101/spring-petclinic'
             }
         }
         stage('Build with Maven') {
