@@ -14,8 +14,8 @@ pipeline {
         }
         stage('Start Databases') {
             steps {
-                sh 'docker compose down -v || true'
-                sh 'docker compose up -d'
+                sh 'docker-compose down -v || true'
+                sh 'docker-compose up -d'
                 sh 'sleep 20'
             }
         }
