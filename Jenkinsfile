@@ -40,9 +40,9 @@ pipeline {
             steps {
                 withKubeConfig([credentialsId: 'kubeconfig-creds']) {
                     sh 'kubectl set image deployment/sample-app-deployment sample-container=$DOCKER_IMAGE'
+                }
             }
         }
-    }
     }
     post {
         always {
