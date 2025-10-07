@@ -14,6 +14,14 @@ pipeline {
         }
         stage('Start Databases') {
             steps {
+                // Clean up any existing containers first
+                sh 'docker-compose down -v || true'
+                sh 'docker-compose rm -f || true'
+                
+                // Update the first line of docker-compose.yml to use proper YAML comment format
+                sh 'sed -i "s/\\/\\//\\#/" docker-compose.yml'
+                
+                // Start fresh containers
                 sh 'docker-compose up -d'
             }
         }
@@ -38,6 +46,12 @@ pipeline {
             steps {
                 sh 'kubectl set image deployment/sample-app-deployment sample-container=$DOCKER_IMAGE'
             }
+        }
+    }
+    post {
+        always {
+            // Cleanup
+            sh 'docker-compose down -v || true'
         }
     }
 }
