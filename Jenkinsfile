@@ -38,9 +38,11 @@ pipeline {
         }
         stage('Deploy to Kubernetes') {
             steps {
-                sh 'kubectl set image deployment/sample-app-deployment sample-container=$DOCKER_IMAGE'
+                withKubeConfig([credentialsId: 'kubeconfig-creds']) {
+                    sh 'kubectl set image deployment/sample-app-deployment sample-container=$DOCKER_IMAGE'
             }
         }
+    }
     }
     post {
         always {
