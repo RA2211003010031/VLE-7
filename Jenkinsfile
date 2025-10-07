@@ -12,6 +12,11 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/WiiWake3101/spring-petclinic'
             }
         }
+        stage('Start Databases') {
+            steps {
+                sh 'docker-compose up -d'
+            }
+        }
         stage('Build with Maven') {
             steps {
                 sh 'mvn clean package'
