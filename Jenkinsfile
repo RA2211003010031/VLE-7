@@ -33,10 +33,15 @@ pipeline {
             steps {
                 withDockerRegistry([credentialsId: 'docker-hub-creds', url: 'https://index.docker.io/v1/']) {
                     sh 'docker push $DOCKER_IMAGE'
+                }
             }
         }
-        }
         stage('Deploy to Kubernetes') {
+            environment {
+                AWS_ACCESS_KEY_ID = credentials('aws-access-key-id')
+                AWS_SECRET_ACCESS_KEY = credentials('aws-secret-access-key')
+                AWS_DEFAULT_REGION = 'ap-south-1' // set your region
+            }
             steps {
                 withKubeConfig([credentialsId: 'kubeconfig-creds']) {
                     sh 'kubectl set image deployment/sample-app-deployment sample-container=$DOCKER_IMAGE'
