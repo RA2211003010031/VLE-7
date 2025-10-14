@@ -5,6 +5,7 @@ pipeline {
     }
     environment {
         DOCKER_IMAGE = "wiiwake3101/spring-petclinic:${BUILD_NUMBER}"
+        DEPLOY_COLOR = "green"
     }
     stages {
         stage('Checkout Code') {
@@ -40,11 +41,19 @@ pipeline {
             environment {
                 AWS_ACCESS_KEY_ID = credentials('aws-access-key-id')
                 AWS_SECRET_ACCESS_KEY = credentials('aws-secret-access-key')
-                AWS_DEFAULT_REGION = 'ap-south-1' // set your region
+                AWS_DEFAULT_REGION = 'ap-south-1'
             }
             steps {
                 withKubeConfig([credentialsId: 'kubeconfig-creds']) {
-                    sh 'kubectl set image deployment/sample-app-deployment sample-container=$DOCKER_IMAGE'
+                    script {
+                        if (env.DEPLOY_COLOR == "blue") {
+                            sh 'kubectl apply -f k8s/petclinic-blue-deployment.yml'
+                            sh 'kubectl apply -f k8s/petclinic-blue-service.yml'
+                        } else {
+                            sh 'kubectl apply -f k8s/petclinic-green-deployment.yml'
+                            sh 'kubectl apply -f k8s/petclinic-green-service.yml'
+                        }
+                    }
                 }
             }
         }

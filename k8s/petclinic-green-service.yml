@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: petclinic-green-service
+spec:
+  selector:
+    app: petclinic
+    color: green
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+  type: LoadBalancer
