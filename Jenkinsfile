@@ -5,7 +5,7 @@ pipeline {
     }
     environment {
         DOCKER_IMAGE = "wiiwake3101/spring-petclinic:${BUILD_NUMBER}"
-        DEPLOY_COLOR = "blue"
+        DEPLOY_COLOR = "green"
     }
     stages {
         stage('Checkout Code') {
@@ -20,14 +20,9 @@ pipeline {
                 sh 'sleep 20'
             }
         }
-        stage('Build with Maven') {
-            steps {
-                sh 'mvn clean package'
-            }
-        }
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t $DOCKER_IMAGE .'
+                sh 'docker build -t $DOCKER_IMAGE -t wiiwake3101/spring-petclinic:latest .'
             }
         }
         stage('Push to Docker Hub') {
