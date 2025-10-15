@@ -5,7 +5,7 @@ pipeline {
     }
     environment {
         DOCKER_IMAGE = "wiiwake3101/spring-petclinic:${BUILD_NUMBER}"
-        DEPLOY_COLOR = "green"
+        DEPLOY_COLOR = "blue"
     }
     stages {
         stage('Checkout Code') {
