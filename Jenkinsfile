@@ -5,7 +5,7 @@ pipeline {
     }
     environment {
         DOCKER_IMAGE = "wiiwake3101/spring-petclinic:${BUILD_NUMBER}"
-        DEPLOY_COLOR = "green"
+        DEPLOY_COLOR = "blue"
     }
     stages {
         stage('Checkout Code') {
@@ -34,6 +34,7 @@ pipeline {
             steps {
                 withDockerRegistry([credentialsId: 'docker-hub-creds', url: 'https://index.docker.io/v1/']) {
                     sh 'docker push $DOCKER_IMAGE'
+                    sh 'docker push wiiwake3101/spring-petclinic:latest'
                 }
             }
         }
