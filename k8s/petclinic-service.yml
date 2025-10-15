@@ -1,11 +1,11 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: petclinic-green-service
+  name: petclinic-service
 spec:
   selector:
     app: petclinic
-    color: green
+    color: blue
   ports:
     - protocol: TCP
       port: 80

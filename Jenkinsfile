@@ -59,6 +59,19 @@ pipeline {
             }
         }
     }
+    stage('Switch Traffic') {
+        steps {
+            withKubeConfig([credentialsId: 'kubeconfig-creds']) {
+                script {
+                    if (env.DEPLOY_COLOR == "blue") {
+                        sh "kubectl patch service petclinic-service -p '{\"spec\": {\"selector\": {\"app\": \"petclinic\", \"color\": \"blue\"}}}'"
+                    } else {
+                        sh "kubectl patch service petclinic-service -p '{\"spec\": {\"selector\": {\"app\": \"petclinic\", \"color\": \"green\"}}}'"
+                    }
+                }
+            }
+        }
+    }
     post {
         always {
             sh 'docker compose down -v || true'
