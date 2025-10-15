@@ -19,6 +19,6 @@ spec:
     spec:
       containers:
       - name: petclinic
-        image: <your-ecr-image-url>
+        image: wiiwake3101/spring-petclinic:latest
         ports:
         - containerPort: 8080
