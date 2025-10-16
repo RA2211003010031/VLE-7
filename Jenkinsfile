@@ -4,13 +4,13 @@ pipeline {
         maven 'Maven 3.8.1'
     }
     environment {
-        DOCKER_IMAGE = "wiiwake3101/spring-petclinic:${BUILD_NUMBER}"
+        DOCKER_IMAGE = "adarsh05122002/spring-petclinic:${BUILD_NUMBER}"
         DEPLOY_COLOR = "blue"
     }
     stages {
         stage('Checkout Code') {
             steps {
-                git branch: 'main', url: 'https://github.com/WiiWake3101/spring-petclinic'
+                git branch: 'main', url: 'https://github.com/RA2211003010031/spring-petclinic'
             }
         }
         stage('Start Databases') {
@@ -34,7 +34,7 @@ pipeline {
             steps {
                 withDockerRegistry([credentialsId: 'docker-hub-creds', url: 'https://index.docker.io/v1/']) {
                     sh 'docker push $DOCKER_IMAGE'
-                    sh 'docker push wiiwake3101/spring-petclinic:latest'
+                    sh 'docker push adarsh05122002/spring-petclinic:latest'
                 }
             }
         }
