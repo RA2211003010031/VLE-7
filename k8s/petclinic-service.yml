@@ -5,7 +5,7 @@ metadata:
 spec:
   selector:
     app: petclinic
-    color: blue
+    color: green
   ports:
     - protocol: TCP
       port: 80
