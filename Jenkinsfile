@@ -50,15 +50,11 @@ pipeline {
                     }
                 }
             }
-            environment {
-                AWS_ACCESS_KEY_ID = credentials('aws-access-key-id')
-                AWS_SECRET_ACCESS_KEY = credentials('aws-secret-access-key')
-                AWS_DEFAULT_REGION = 'ap-south-1'
-            }
             steps {
                 script {
                     try {
                         withKubeConfig([credentialsId: 'kubeconfig-creds']) {
+                            echo "Deploying to Kubernetes..."
                             if (env.DEPLOY_COLOR == "blue") {
                                 sh 'kubectl apply -f k8s/petclinic-blue-deployment.yml'
                                 sh 'kubectl apply -f k8s/petclinic-service.yml'
@@ -66,10 +62,12 @@ pipeline {
                                 sh 'kubectl apply -f k8s/petclinic-green-deployment.yml'
                                 sh 'kubectl apply -f k8s/petclinic-service.yml'
                             }
+                            echo "Kubernetes deployment completed successfully!"
                         }
                     } catch (Exception e) {
                         echo "Kubernetes deployment failed: ${e.getMessage()}"
                         echo "Continuing without Kubernetes deployment..."
+                        currentBuild.result = 'UNSTABLE'
                     }
                 }
             }
@@ -85,11 +83,13 @@ pipeline {
                 script {
                     try {
                         withKubeConfig([credentialsId: 'kubeconfig-creds']) {
+                            echo "Switching traffic to ${env.DEPLOY_COLOR} deployment..."
                             if (env.DEPLOY_COLOR == "blue") {
                                 sh "kubectl patch service petclinic-service -p '{\"spec\": {\"selector\": {\"app\": \"petclinic\", \"color\": \"blue\"}}}'"
                             } else {
                                 sh "kubectl patch service petclinic-service -p '{\"spec\": {\"selector\": {\"app\": \"petclinic\", \"color\": \"green\"}}}'"
                             }
+                            echo "Traffic switching completed successfully!"
                         }
                     } catch (Exception e) {
                         echo "Traffic switching failed: ${e.getMessage()}"

@@ -19,6 +19,6 @@ spec:
     spec:
       containers:
       - name: petclinic
-        image: wiiwake3101/spring-petclinic:latest
+        image: adarsh05122002/spring-petclinic:latest
         ports:
         - containerPort: 8080
