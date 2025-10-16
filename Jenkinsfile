@@ -73,17 +73,29 @@ pipeline {
                             echo "Waiting for LoadBalancer to get external IP..."
                             sh 'kubectl get service petclinic-service'
                             sh '''
-                                for i in {1..10}; do
+                                echo "=== Checking LoadBalancer Status ==="
+                                for i in {1..20}; do
                                     EXTERNAL_IP=$(kubectl get service petclinic-service -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' 2>/dev/null || echo "")
                                     if [ ! -z "$EXTERNAL_IP" ] && [ "$EXTERNAL_IP" != "" ]; then
+                                        echo "✅ SUCCESS! LoadBalancer is ready!"
                                         echo "🌐 PetClinic Application URL: http://$EXTERNAL_IP"
-                                        echo "Application will be accessible at: http://$EXTERNAL_IP"
+                                        echo "📱 Access your Spring PetClinic at: http://$EXTERNAL_IP"
+                                        echo "⏰ It may take 1-2 more minutes for the application to be fully ready"
                                         break
                                     else
-                                        echo "Waiting for external IP... (attempt $i/10)"
-                                        sleep 15
+                                        echo "⏳ Waiting for external IP... (attempt $i/20) - LoadBalancer provisioning..."
+                                        sleep 30
                                     fi
                                 done
+                                
+                                # Show current status regardless
+                                echo "=== Current Service Status ==="
+                                kubectl get service petclinic-service -o wide
+                                
+                                # Show deployment status
+                                echo "=== Deployment Status ==="
+                                kubectl get deployment petclinic-blue
+                                kubectl get pods -l app=petclinic
                             '''
                         }
                     } catch (Exception e) {
