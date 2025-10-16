@@ -49,10 +49,10 @@ pipeline {
                     script {
                         if (env.DEPLOY_COLOR == "blue") {
                             sh 'kubectl apply -f k8s/petclinic-blue-deployment.yml'
-                            sh 'kubectl apply -f k8s/petclinic-blue-service.yml'
+                            sh 'kubectl apply -f k8s/petclinic-service.yml'
                         } else {
                             sh 'kubectl apply -f k8s/petclinic-green-deployment.yml'
-                            sh 'kubectl apply -f k8s/petclinic-green-service.yml'
+                            sh 'kubectl apply -f k8s/petclinic-service.yml'
                         }
                     }
                 }
