@@ -50,6 +50,11 @@ pipeline {
                     }
                 }
             }
+            environment {
+                AWS_ACCESS_KEY_ID = credentials('aws-access-key-id')
+                AWS_SECRET_ACCESS_KEY = credentials('aws-secret-access-key')
+                AWS_DEFAULT_REGION = 'ap-south-1'
+            }
             steps {
                 script {
                     try {
@@ -63,6 +68,23 @@ pipeline {
                                 sh 'kubectl apply -f k8s/petclinic-service.yml'
                             }
                             echo "Kubernetes deployment completed successfully!"
+                            
+                            // Wait for load balancer to be ready and get external IP
+                            echo "Waiting for LoadBalancer to get external IP..."
+                            sh 'kubectl get service petclinic-service'
+                            sh '''
+                                for i in {1..10}; do
+                                    EXTERNAL_IP=$(kubectl get service petclinic-service -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' 2>/dev/null || echo "")
+                                    if [ ! -z "$EXTERNAL_IP" ] && [ "$EXTERNAL_IP" != "" ]; then
+                                        echo "🌐 PetClinic Application URL: http://$EXTERNAL_IP"
+                                        echo "Application will be accessible at: http://$EXTERNAL_IP"
+                                        break
+                                    else
+                                        echo "Waiting for external IP... (attempt $i/10)"
+                                        sleep 15
+                                    fi
+                                done
+                            '''
                         }
                     } catch (Exception e) {
                         echo "Kubernetes deployment failed: ${e.getMessage()}"
@@ -78,6 +100,11 @@ pipeline {
                     // Only run if previous Kubernetes deployment was successful
                     return currentBuild.result != 'FAILURE'
                 }
+            }
+            environment {
+                AWS_ACCESS_KEY_ID = credentials('aws-access-key-id')
+                AWS_SECRET_ACCESS_KEY = credentials('aws-secret-access-key')
+                AWS_DEFAULT_REGION = 'ap-south-1'
             }
             steps {
                 script {
