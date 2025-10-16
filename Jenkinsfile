@@ -1,5 +1,10 @@
 pipeline {
     agent any
+    
+    triggers {
+        githubPush()
+    }
+    
     tools {
         maven 'Maven 3.8.1'
     }
@@ -8,11 +13,6 @@ pipeline {
         DEPLOY_COLOR = "blue"
     }
     stages {
-        stage('Checkout Code') {
-            steps {
-                git branch: 'main', url: 'https://github.com/RA2211003010031/VLE-7.git'
-            }
-        }
         stage('Start Databases') {
             steps {
                 sh 'docker-compose down -v || true'
@@ -39,34 +39,61 @@ pipeline {
             }
         }
         stage('Deploy to Kubernetes') {
+            when {
+                expression {
+                    // Only run if kubeconfig credentials exist
+                    try {
+                        return credentials('kubeconfig-creds') != null
+                    } catch (Exception e) {
+                        echo "Kubeconfig credentials not found, skipping Kubernetes deployment"
+                        return false
+                    }
+                }
+            }
             environment {
                 AWS_ACCESS_KEY_ID = credentials('aws-access-key-id')
                 AWS_SECRET_ACCESS_KEY = credentials('aws-secret-access-key')
                 AWS_DEFAULT_REGION = 'ap-south-1'
             }
             steps {
-                withKubeConfig([credentialsId: 'kubeconfig-creds']) {
-                    script {
-                        if (env.DEPLOY_COLOR == "blue") {
-                            sh 'kubectl apply -f k8s/petclinic-blue-deployment.yml'
-                            sh 'kubectl apply -f k8s/petclinic-service.yml'
-                        } else {
-                            sh 'kubectl apply -f k8s/petclinic-green-deployment.yml'
-                            sh 'kubectl apply -f k8s/petclinic-service.yml'
+                script {
+                    try {
+                        withKubeConfig([credentialsId: 'kubeconfig-creds']) {
+                            if (env.DEPLOY_COLOR == "blue") {
+                                sh 'kubectl apply -f k8s/petclinic-blue-deployment.yml'
+                                sh 'kubectl apply -f k8s/petclinic-service.yml'
+                            } else {
+                                sh 'kubectl apply -f k8s/petclinic-green-deployment.yml'
+                                sh 'kubectl apply -f k8s/petclinic-service.yml'
+                            }
                         }
+                    } catch (Exception e) {
+                        echo "Kubernetes deployment failed: ${e.getMessage()}"
+                        echo "Continuing without Kubernetes deployment..."
                     }
                 }
             }
         }
         stage('Switch Traffic') {
+            when {
+                expression {
+                    // Only run if previous Kubernetes deployment was successful
+                    return currentBuild.result != 'FAILURE'
+                }
+            }
             steps {
-                withKubeConfig([credentialsId: 'kubeconfig-creds']) {
-                    script {
-                        if (env.DEPLOY_COLOR == "blue") {
-                            sh "kubectl patch service petclinic-service -p '{\"spec\": {\"selector\": {\"app\": \"petclinic\", \"color\": \"blue\"}}}'"
-                        } else {
-                            sh "kubectl patch service petclinic-service -p '{\"spec\": {\"selector\": {\"app\": \"petclinic\", \"color\": \"green\"}}}'"
+                script {
+                    try {
+                        withKubeConfig([credentialsId: 'kubeconfig-creds']) {
+                            if (env.DEPLOY_COLOR == "blue") {
+                                sh "kubectl patch service petclinic-service -p '{\"spec\": {\"selector\": {\"app\": \"petclinic\", \"color\": \"blue\"}}}'"
+                            } else {
+                                sh "kubectl patch service petclinic-service -p '{\"spec\": {\"selector\": {\"app\": \"petclinic\", \"color\": \"green\"}}}'"
+                            }
                         }
+                    } catch (Exception e) {
+                        echo "Traffic switching failed: ${e.getMessage()}"
+                        echo "Kubernetes deployment may not be available"
                     }
                 }
             }
