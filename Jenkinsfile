@@ -1,16 +1,16 @@
 pipeline {
     agent any
     tools {
-        maven 'Maven 3.8.1'
+        maven 'Maven'
     }
     environment {
-        DOCKER_IMAGE = "wiiwake3101/spring-petclinic:${BUILD_NUMBER}"
+        DOCKER_IMAGE = "adarsh05122002/spring-petclinic:${BUILD_NUMBER}"
         DEPLOY_COLOR = "blue"
     }
     stages {
         stage('Checkout Code') {
             steps {
-                git branch: 'main', url: 'https://github.com/WiiWake3101/spring-petclinic'
+                git branch: 'main', url: 'https://github.com/RA2211003010031/VLE-7.git'
             }
         }
         stage('Start Databases') {
@@ -27,14 +27,14 @@ pipeline {
         }
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t $DOCKER_IMAGE -t wiiwake3101/spring-petclinic:latest .'
+                sh 'docker build -t $DOCKER_IMAGE -t adarsh05122002/spring-petclinic:latest .'
             }
         }
         stage('Push to Docker Hub') {
             steps {
                 withDockerRegistry([credentialsId: 'docker-hub-creds', url: 'https://index.docker.io/v1/']) {
                     sh 'docker push $DOCKER_IMAGE'
-                    sh 'docker push wiiwake3101/spring-petclinic:latest'
+                    sh 'docker push adarsh05122002/spring-petclinic:latest'
                 }
             }
         }
@@ -58,15 +58,15 @@ pipeline {
                 }
             }
         }
-    }
-    stage('Switch Traffic') {
-        steps {
-            withKubeConfig([credentialsId: 'kubeconfig-creds']) {
-                script {
-                    if (env.DEPLOY_COLOR == "blue") {
-                        sh "kubectl patch service petclinic-service -p '{\"spec\": {\"selector\": {\"app\": \"petclinic\", \"color\": \"blue\"}}}'"
-                    } else {
-                        sh "kubectl patch service petclinic-service -p '{\"spec\": {\"selector\": {\"app\": \"petclinic\", \"color\": \"green\"}}}'"
+        stage('Switch Traffic') {
+            steps {
+                withKubeConfig([credentialsId: 'kubeconfig-creds']) {
+                    script {
+                        if (env.DEPLOY_COLOR == "blue") {
+                            sh "kubectl patch service petclinic-service -p '{\"spec\": {\"selector\": {\"app\": \"petclinic\", \"color\": \"blue\"}}}'"
+                        } else {
+                            sh "kubectl patch service petclinic-service -p '{\"spec\": {\"selector\": {\"app\": \"petclinic\", \"color\": \"green\"}}}'"
+                        }
                     }
                 }
             }
